@@ -19,6 +19,8 @@ df = pd.read_csv('TSLA.csv', parse_dates = True, index_col = 0)
 
 df['100ma'] = df['Adj Close'].rolling(window=100).mean()
 
+# Test commit
+
 
 df.plot()
 plt.show()
