@@ -3,27 +3,53 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import pandas as pd
 import pandas_datareader.data as web
+from  mpl_finance import candlestick_ohlc
+import matplotlib.dates as mdates
+
 
 style.use('ggplot')
-start = dt.datetime(2015,1,1)
-end = dt.datetime.now()
+#start = dt.datetime(2015,1,1)
+#end = dt.datetime.now()
 
 # Saved a local copy of TSLA.csv so we don't need a web call everytime
-#df = web.DataReader("TSLA", 'yahoo',start,end)
+#df = web.DataReader("TSLA", 'yahoo')
 #df.reset_index(inplace=True)
 #df.set_index("Date", inplace=True)
 ##df = df.drop("Symbol", axis=1)
 #df.to_csv("TSLA.csv")
 
+
 df = pd.read_csv('TSLA.csv', parse_dates = True, index_col = 0)
 
-df['100ma'] = df['Adj Close'].rolling(window=100).mean()
+df['100ma'] = df['Adj Close'].rolling(window=100,min_periods=0).mean()
 
-# Test commit
+#print(df.head())
 
+ax1 = plt.subplot2grid((6,1), (0,0), rowspan=5, colspan=1)
+ax2 = plt.subplot2grid((6,1), (5,0), rowspan=1, colspan=1, sharex=ax1)
 
-df.plot()
+ax1.plot(df.index, df['Adj Close'])
+ax1.plot(df.index, df['100ma'])
+ax2.bar(df.index, df['Volume'])
+
+#plt.show()
+plt.close()
+## Candlestick
+
+df_ohlc = df['Adj Close'].resample('10D').ohlc()
+df_volume = df['Volume'].resample('10D').mean()
+
+df_ohlc = df_ohlc.reset_index()
+df_ohlc['Date'] = df_ohlc['Date'].map(mdates.date2num)
+
+fig = plt.figure()
+fig.set_size_inches(12,12)
+ax1 = plt.subplot2grid((6,1), (0,0), rowspan=5, colspan=1)
+ax2 = plt.subplot2grid((6,1), (5,0), rowspan=1, colspan=1, sharex=ax1)
+ax1.xaxis_date()
+
+candlestick_ohlc(ax1, df_ohlc.values, width=5, colorup='g')
+ax2.fill_between(df_volume.index.map(mdates.date2num), df_volume.values, 0)
 plt.show()
-
 
 
